@@ -33,14 +33,14 @@ PRIOR_HEIGHTS =[[20.0, 45.0, 70.0, 110.0],[30.0, 55.0, 90.0, 140.0]] #[3.0,8.0,1
 PRIOR_ANGLES = [5.0, 25.0, 55.0, 85.0, 115.0, 145.0, 175.0]
 
 
-ITERATION_NUM = 50000 
+ITERATION_NUM = 20000 
 OVERLAP_THRESHOLD = 0.5
 IS180 = False
 NP_RATIO = 3
 LOC_WEIGHTS = [0.1, 0.1, 0.2, 0.2, 0.1]
 LOAD_PREVIOUS_POS = False
 WEIGHT_DECAY = 0.0005
-DISPLAY_INTERVAL = 50 #100
+DISPLAY_INTERVAL = 100 #100
 SAVE_MODEL_INTERVAL = 2000
 os.environ["CUDA_VISIBLE_DEVICES"] = "0" # select the used GPU
 TEST_BATCH_SIZE = 1
@@ -192,13 +192,10 @@ class DrBoxNet():
                     gt_box = rbox
                 else:
                     gt_box = np.concatenate((gt_box, rbox), axis=0)
-                i += 1                                                        
-        if not LOAD_PREVIOUS_POS:
-            self.ind_one_hot[idx], self.positive_indice[idx], self.encodedbox[idx] = MatchRBox(self.prior_box, gt_box, OVERLAP_THRESHOLD, IS180)
-            self.encodedbox[idx] /= LOC_WEIGHTS
-        self.pos_num[idx] = len(self.positive_indice[idx])
-        if self.max_neg_num < self.pos_num[idx]:
-            self.max_neg_num = self.pos_num[idx]
+                i += 1
+
+        return idx, MatchRBox(self.prior_box, gt_box, OVERLAP_THRESHOLD, IS180)                                       
+        
 
     def get_encoded_positive_box(self):        
         prior_box4 = PriorRBox(IM_HEIGHT, IM_WIDTH, FEA_HEIGHT4, FEA_WIDTH4, STEPSIZE4, PRIOR_ANGLES, PRIOR_HEIGHTS[1], PRIOR_WIDTHS[1])
@@ -224,7 +221,18 @@ class DrBoxNet():
                 self.encodedbox = pickle.load(fid)
 
         p = Pool(12)
-        p.map(self.get_image_encoded_positive_box, list(range(self.train_im_num)))
+        results = p.map(self.get_image_encoded_positive_box, list(range(self.train_im_num)))
+
+        for res in results:
+            idx = res[0]
+            if not LOAD_PREVIOUS_POS:
+                self.ind_one_hot[idx] = res[1][0]
+                self.positive_indice[idx] = res[1][1]
+                self.encodedbox[idx] = res[1][2]
+                self.encodedbox[idx] /= LOC_WEIGHTS
+            self.pos_num[idx] = len(self.positive_indice[idx])
+            if self.max_neg_num < self.pos_num[idx]:
+                self.max_neg_num = self.pos_num[idx]
 
         self.max_neg_num *= NP_RATIO
         if not LOAD_PREVIOUS_POS: 
@@ -277,6 +285,7 @@ class DrBoxNet():
             batch_neg_mask = np.zeros(TRAIN_BATCH_SIZE*self.max_neg_num)
             k = 0            
             for batch_idx in batch_list:
+                print(batch_idx)
                 im_rbox_info = self.train_im_list[batch_idx]
                 im_rbox_info = im_rbox_info.split(' ')
                 real_idx = eval(im_rbox_info[0])
