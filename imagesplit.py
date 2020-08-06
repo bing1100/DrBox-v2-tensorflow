@@ -4,6 +4,7 @@ from pathos.multiprocessing import ProcessingPool as Pool
 processNumbers = 4
 split_width = 300
 split_height = 300
+overlap = 0.5
 
 def start_points(size, split_size, overlap=0):
     points = [0]
@@ -42,8 +43,8 @@ def processImg(num):
     kps = [line.split(",") for line in lines[:-1]]
 
     # Find Starting Points to split the image
-    X_points = start_points(img_w, split_width, 0.50)
-    Y_points = start_points(img_h, split_height, 0.50)
+    X_points = start_points(img_w, split_width, overlap)
+    Y_points = start_points(img_h, split_height, overlap)
 
     count = 0
     name = str(num)
