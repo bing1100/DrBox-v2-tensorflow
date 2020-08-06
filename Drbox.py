@@ -9,6 +9,7 @@ from model import *
 from rbox_functions import *
 import scipy.misc
 import pickle
+from pathos.multiprocessing import ProcessingPool as Pool
 
 TXT_DIR = './plane' 
 INPUT_DATA_PATH = TXT_DIR + '/train'
@@ -162,6 +163,43 @@ class DrBoxNet():
             infile.close()
             self.test_im_num = len(self.test_im_list)
 
+    def get_image_encoded_positive_box(self, k):
+        if k % 100 == 0:
+            print('Preprocessing {}'.format(k)) 
+        im_rbox_info = self.train_im_list[k]
+        im_rbox_info = im_rbox_info.split(' ')
+        idx = eval(im_rbox_info[0])
+        rbox_fn = im_rbox_info[2]
+        rbox_path = os.path.join(INPUT_DATA_PATH, rbox_fn)
+        rboxes = []
+        rboxes = np.array(rboxes)
+        i = 0
+        with open(rbox_path, 'r') as infile:
+            for line in infile:
+                rbox = []
+                ii = 0
+                for rbox_param in line.split(' '):
+                    if ii == 0 or ii == 2: # center x or width
+                        rbox.append(eval(rbox_param)/IM_WIDTH)
+                    elif ii == 1 or ii == 3: # center y or height
+                        rbox.append(eval(rbox_param)/IM_HEIGHT)
+                    elif ii == 5:
+                        rbox.append(eval(rbox_param))
+                    ii += 1
+                rbox = np.array(rbox)
+                rbox = rbox[np.newaxis, :]
+                if i == 0:
+                    gt_box = rbox
+                else:
+                    gt_box = np.concatenate((gt_box, rbox), axis=0)
+                i += 1                                                        
+        if not LOAD_PREVIOUS_POS:
+            self.ind_one_hot[idx], self.positive_indice[idx], self.encodedbox[idx] = MatchRBox(self.prior_box, gt_box, OVERLAP_THRESHOLD, IS180)
+            self.encodedbox[idx] /= LOC_WEIGHTS
+        self.pos_num[idx] = len(self.positive_indice[idx])
+        if self.max_neg_num < self.pos_num[idx]:
+            self.max_neg_num = self.pos_num[idx]
+
     def get_encoded_positive_box(self):        
         prior_box4 = PriorRBox(IM_HEIGHT, IM_WIDTH, FEA_HEIGHT4, FEA_WIDTH4, STEPSIZE4, PRIOR_ANGLES, PRIOR_HEIGHTS[1], PRIOR_WIDTHS[1])
         prior_box3 = PriorRBox(IM_HEIGHT, IM_WIDTH, FEA_HEIGHT3, FEA_WIDTH3, STEPSIZE3, PRIOR_ANGLES, PRIOR_HEIGHTS[0], PRIOR_WIDTHS[0])
@@ -184,42 +222,10 @@ class DrBoxNet():
                 self.positive_indice = pickle.load(fid)
             with open(os.path.join(INPUT_DATA_PATH, 'encodedbox.pkl'),'rb') as fid:
                 self.encodedbox = pickle.load(fid)
-        for k in range(self.train_im_num):
-            # if k % 25 == 0:
-            print('Preprocessing {}'.format(k)) 
-            im_rbox_info = self.train_im_list[k]
-            im_rbox_info = im_rbox_info.split(' ')
-            idx = eval(im_rbox_info[0])
-            rbox_fn = im_rbox_info[2]
-            rbox_path = os.path.join(INPUT_DATA_PATH, rbox_fn)
-            rboxes = []
-            rboxes = np.array(rboxes)
-            i = 0
-            with open(rbox_path, 'r') as infile:
-                for line in infile:
-                    rbox = []
-                    ii = 0
-                    for rbox_param in line.split(' '):
-                        if ii == 0 or ii == 2: # center x or width
-                            rbox.append(eval(rbox_param)/IM_WIDTH)
-                        elif ii == 1 or ii == 3: # center y or height
-                            rbox.append(eval(rbox_param)/IM_HEIGHT)
-                        elif ii == 5:
-                            rbox.append(eval(rbox_param))
-                        ii += 1
-                    rbox = np.array(rbox)
-                    rbox = rbox[np.newaxis, :]
-                    if i == 0:
-                        gt_box = rbox
-                    else:
-                        gt_box = np.concatenate((gt_box, rbox), axis=0)
-                    i += 1                                                        
-            if not LOAD_PREVIOUS_POS:
-                self.ind_one_hot[idx], self.positive_indice[idx], self.encodedbox[idx] = MatchRBox(prior_box, gt_box, OVERLAP_THRESHOLD, IS180)
-                self.encodedbox[idx] /= LOC_WEIGHTS
-            self.pos_num[idx] = len(self.positive_indice[idx])
-            if self.max_neg_num < self.pos_num[idx]:
-                self.max_neg_num = self.pos_num[idx]
+
+        p = Pool(12)
+        p.map(self.get_image_encoded_positive_box, list(range(self.train_im_num)))
+
         self.max_neg_num *= NP_RATIO
         if not LOAD_PREVIOUS_POS: 
             with open(os.path.join(INPUT_DATA_PATH, 'ind_one_hot.pkl'),'wb') as fid:
