@@ -19,12 +19,15 @@ wBucket = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 hBucket = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 aBucket = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-for num in range(1, 1001):
-    kpsFile = "./splitKeypoints/" + str(num) + ".txt"
-    RBoxFile = "./splitImages/" + str(num) + ".tif.rbox"
-    imgFile = "./splitImages/" + str(num) + ".tif"
+f = open("./splitlist.txt", "r")
+lines = (f.read()).split("\n")
 
-    trainLines.append(str(num) + ".tif " + str(num) + ".tif.rbox\n")
+for name in lines[:-1]:
+    kpsFile = "./splitKeypoints/" + name + ".txt"
+    RBoxFile = "./splitImages/" + name + ".tif.rbox"
+    imgFile = "./splitImages/" + name + ".tif"
+
+    trainLines.append(name + ".tif " + name + ".tif.rbox\n")
 
     f = open(kpsFile, "r")
     
