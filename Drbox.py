@@ -10,14 +10,14 @@ from rbox_functions import *
 import scipy.misc
 import pickle
 
-TXT_DIR = './data' 
+TXT_DIR = './plane' 
 INPUT_DATA_PATH = TXT_DIR + '/train'
 TEST_DATA_PATH = TXT_DIR + '/test'
 PRETRAINED_NET_PATH = "./vgg16.npy"
 SAVE_PATH = './result' 
-TRAIN_BATCH_SIZE = 16
-IM_HEIGHT = 300
-IM_WIDTH = 300
+TRAIN_BATCH_SIZE = 8
+IM_HEIGHT = 1024
+IM_WIDTH = 1024
 IM_CDIM = 3
 FEA_HEIGHT4 = 38
 FEA_WIDTH4 = 38
@@ -27,9 +27,9 @@ STEPSIZE4 = 8
 STEPSIZE3 = 4
 
 
-PRIOR_ANGLES = [0, 30, 60, 90, 120, 150]
-PRIOR_HEIGHTS =[[4.0, 7.0, 10.0, 13.0],[3.0,8.0,12.0,17.0,23.0]] #[3.0,8.0,12.0,17.0,23.0] #
-PRIOR_WIDTHS = [[15.0, 25.0, 35.0, 45.0],[20.0,35.0,50.0,80.0,100.0]]#[20.0,35.0,50.0,80.0,100.0]  
+PRIOR_WIDTHS = [[20.0, 45.0, 70.0, 110.0],[30.0, 55.0, 90.0, 140.0]]#[20.0,35.0,50.0,80.0,100.0]  
+PRIOR_HEIGHTS =[[20.0, 45.0, 70.0, 110.0],[30.0, 55.0, 90.0, 140.0]] #[3.0,8.0,12.0,17.0,23.0] #
+PRIOR_ANGLES = [5.0, 25.0, 55.0, 85.0, 115.0, 145.0, 175.0]
 
 
 ITERATION_NUM = 50000 
@@ -39,7 +39,7 @@ NP_RATIO = 3
 LOC_WEIGHTS = [0.1, 0.1, 0.2, 0.2, 0.1]
 LOAD_PREVIOUS_POS = False
 WEIGHT_DECAY = 0.0005
-DISPLAY_INTERVAL = 100 #100
+DISPLAY_INTERVAL = 50 #100
 SAVE_MODEL_INTERVAL = 2000
 os.environ["CUDA_VISIBLE_DEVICES"] = "0" # select the used GPU
 TEST_BATCH_SIZE = 1
@@ -185,8 +185,8 @@ class DrBoxNet():
             with open(os.path.join(INPUT_DATA_PATH, 'encodedbox.pkl'),'rb') as fid:
                 self.encodedbox = pickle.load(fid)
         for k in range(self.train_im_num):
-            if k % 100 == 0:
-                print('Preprocessing {}'.format(k)) 
+            # if k % 25 == 0:
+            print('Preprocessing {}'.format(k)) 
             im_rbox_info = self.train_im_list[k]
             im_rbox_info = im_rbox_info.split(' ')
             idx = eval(im_rbox_info[0])
@@ -247,8 +247,6 @@ class DrBoxNet():
         #train_step = tf.train.MomentumOptimizer(self.learning_rate, self.momentum).minimize(self.loss, global_step=self.global_step)
         train_step = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss, global_step=self.global_step)
         self.sess.run(tf.global_variables_initializer())
-        
-        print("here")
 
         # load the model if there is one
         could_load, checkpoint_counter = self.load()
@@ -277,7 +275,7 @@ class DrBoxNet():
                 im_rbox_info = im_rbox_info.split(' ')
                 real_idx = eval(im_rbox_info[0])
                 #input_idx[k] = real_idx
-                im = scipy.misc.imread(os.path.join(INPUT_DATA_PATH, im_rbox_info[1]))
+                im = scipy.misc.imread(os.path.join(INPUT_DATA_PATH, im_rbox_info[1]), mode="RGB")
                 imm = np.zeros((IM_HEIGHT, IM_WIDTH, IM_CDIM))
                 if len(im.shape) == 2:
                     for ij in range(IM_CDIM):

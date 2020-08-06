@@ -69,11 +69,13 @@ def angle(p1, p2):
     """
     v = (p1[0] - p2[0], p1[1] - p2[1])
     a = math.degrees(math.atan2(v[1], v[0]))
+    if a < 0:
+        return 180 + a
     return 180 - a
 
 def extend(p1, p2, val):
     """
-    Calculates two new points further apart from each other by some valu 
+    Calculates two new points further apart from each other by some value
     :param p1, p2, val: two points and a the value of extension
     :return: two new points ordered from left to right on the number line
     """
@@ -98,3 +100,8 @@ def longer(cLong, cShort):
     cLongMag = (cLong[0][0] - cLong[1][0])**2 + (cLong[0][1] - cLong[1][1])**2
     cShortMag = (cShort[0][0] - cShort[1][0])**2 + (cShort[0][1] - cShort[1][1])**2
     return cLongMag > cShortMag
+
+def bucketCount(buckets, value, size):
+    idx = int(min(value/size, len(buckets)-1))
+    buckets[idx] += 1
+    return buckets

@@ -6,17 +6,25 @@ import getopt
 
 # Note: Copy this file to the train directory before running. 
 
-EPSILON = 15
+EPSILON = 5
 START = 1
 END = 1001
 PRINT = False
 WRITE = True
 SHOW = False
 
+trainLines = []
+
+wBucket = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+hBucket = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+aBucket = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
 for num in range(1, 1001):
     kpsFile = "./keypoints/" + str(num) + ".txt"
     RBoxFile = "./images/" + str(num) + ".tif.rbox"
     imgFile = "./images/" + str(num) + ".tif"
+
+    trainLines.append(str(num) + ".tif " + str(num) + ".tif.rbox\n")
 
     f = open(kpsFile, "r")
     
@@ -79,6 +87,10 @@ for num in range(1, 1001):
         h = u.length(v[0], v[2]) + EPSILON
         a = u.angle(v[3], v[2])
 
+        wBucket = u.bucketCount(wBucket, w, 10)
+        hBucket = u.bucketCount(hBucket, h, 10)
+        aBucket = u.bucketCount(aBucket, a, 10)
+
         if SHOW:
             plt.scatter(c[0], c[1])
             plt.annotate(a, (c[0], c[1]))
@@ -96,8 +108,12 @@ for num in range(1, 1001):
         with open(RBoxFile,'w') as target:
             target.writelines(rboxLines)
 
+with open("./train.txt",'w') as target:
+    target.writelines(trainLines)
 
-
+print(wBucket)
+print(hBucket)
+print(aBucket)
 
     
 
