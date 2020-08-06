@@ -20,9 +20,9 @@ hBucket = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 aBucket = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 for num in range(1, 1001):
-    kpsFile = "./keypoints/" + str(num) + ".txt"
-    RBoxFile = "./images/" + str(num) + ".tif.rbox"
-    imgFile = "./images/" + str(num) + ".tif"
+    kpsFile = "./splitKeypoints/" + str(num) + ".txt"
+    RBoxFile = "./splitImages/" + str(num) + ".tif.rbox"
+    imgFile = "./splitImages/" + str(num) + ".tif"
 
     trainLines.append(str(num) + ".tif " + str(num) + ".tif.rbox\n")
 

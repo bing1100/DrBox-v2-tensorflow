@@ -46,6 +46,7 @@ def processImg(num):
     X_points = start_points(img_w, NEWWIDTH)
     Y_points = start_points(img_h, NEWHEIGHT)
 
+    fileList = []
     name = str(num)
     frmt = 'tif'
 
@@ -53,7 +54,7 @@ def processImg(num):
     count = 0
     for i in Y_points:
         for j in X_points:
-            newLines = []
+            newKPLines = []
 
             # Iterate over all keypoints that could be on split image
             kpCount = 0
@@ -64,21 +65,33 @@ def processImg(num):
                 # Check if the keypoints are on this image
                 if checkKeyPoints(i, j, ys, xs):
                     # Add keypoints on this image to be added to the kp file
-                    newLines.append(lines[kpCount] + "\n")
+                    #   Shift the values accordingly to the new starting point
+                    newKP = [str(xs[0] - j), str(ys[0] - i), 
+                             str(xs[1] - j), str(ys[1] - i), 
+                             str(xs[2] - j), str(ys[2] - i), 
+                             str(xs[3] - j), str(ys[3] - i), 
+                             str(xs[4] - j), str(ys[4] - i)]
+                    newKPLines.append(','.join(newKP) + "\n")
                     # Generate and save the split image
                     split = img[i:i+NEWHEIGHT, j:j+NEWWIDTH]
                     cv2.imwrite('./splitImages/{}_{}.{}'.format(name, count, frmt), split)
+                    fileList.append('{}_{}\n'.format(name, count))
                 
                 kpCount += 1
             
             # Save the kps for the split image only if there are kps
-            if len(newLines) != 0:
+            if len(newKPLines) != 0:
                 with open('./splitKeypoints/{}_{}.txt'.format(name, count),'w') as target:
-                    target.writelines(newLines)
+                    target.writelines(newKPLines)
 
             count += 1
+
+    return fileList
     
 p = Pool(NUMPROCESS)
-p.map(processImg, list(range(1,1001)))
+results = p.map(processImg, list(range(1,1001)))
 
+with open('./splitlist.txt','w') as target:
+    for res in results:
+        target.writelines(res)
 
