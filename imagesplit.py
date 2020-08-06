@@ -1,8 +1,7 @@
 import cv2
 from pathos.multiprocessing import ProcessingPool as Pool
 
-# Note: Copy this file to the train directory before running. 
-
+# Note: Copy this file to the train directory before running. s
 NUMPROCESS = 4
 NEWWIDTH = 300
 NEWHEIGHT = 300
@@ -44,8 +43,8 @@ def processImg(num):
     kps = [line.split(",") for line in lines[:-1]]
 
     # Find Starting Points to split the image
-    X_points = start_points(img_w, NEWWIDTH, OVERLAP)
-    Y_points = start_points(img_h, NEWHEIGHT, OVERLAP)
+    X_points = start_points(img_w, NEWWIDTH)
+    Y_points = start_points(img_h, NEWHEIGHT)
 
     name = str(num)
     frmt = 'tif'
@@ -74,7 +73,7 @@ def processImg(num):
             
             # Save the kps for the split image only if there are kps
             if len(newLines) != 0:
-                with open('./splitKeyPoints/{}_{}.txt'.format(name, count),'w') as target:
+                with open('./splitKeypoints/{}_{}.txt'.format(name, count),'w') as target:
                     target.writelines(newLines)
 
             count += 1
