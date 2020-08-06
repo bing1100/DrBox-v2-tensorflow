@@ -15,7 +15,7 @@ INPUT_DATA_PATH = TXT_DIR + '/train'
 TEST_DATA_PATH = TXT_DIR + '/test'
 PRETRAINED_NET_PATH = "./vgg16.npy"
 SAVE_PATH = './result' 
-TRAIN_BATCH_SIZE = 8
+TRAIN_BATCH_SIZE = 16
 IM_HEIGHT = 300
 IM_WIDTH = 300
 IM_CDIM = 3
@@ -248,6 +248,8 @@ class DrBoxNet():
         train_step = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss, global_step=self.global_step)
         self.sess.run(tf.global_variables_initializer())
         
+        print("here")
+
         # load the model if there is one
         could_load, checkpoint_counter = self.load()
         if could_load:
