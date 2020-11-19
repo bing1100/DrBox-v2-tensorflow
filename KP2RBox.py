@@ -5,10 +5,11 @@ import numpy as np
 import getopt
 
 # Note: Copy this file to the train directory before running. 
-
+#       Run this file after running the imagesplit file.
+#       This will convert all of the splitkeypoints files into rbox files
 EPSILON = 5
 START = 1
-END = 1001
+END = 1001 # Change this to however many images you have +1
 PRINT = False
 WRITE = True
 SHOW = False
@@ -24,10 +25,10 @@ lines = (f.read()).split("\n")
 
 for name in lines[:-1]:
     kpsFile = "./splitKeypoints/" + name + ".txt"
-    RBoxFile = "./splitImages/" + name + ".tif.rbox"
-    imgFile = "./splitImages/" + name + ".tif"
+    RBoxFile = "./splitImages/" + name + ".tif.rbox"    # Change tif to your image extension
+    imgFile = "./splitImages/" + name + ".tif"          # Change tif to your image extension
 
-    trainLines.append(name + ".tif " + name + ".tif.rbox\n")
+    trainLines.append(name + ".tif " + name + ".tif.rbox\n") # Change tif to your image extension
 
     f = open(kpsFile, "r")
     
@@ -43,8 +44,9 @@ for name in lines[:-1]:
     # Split each line in keypoints file
     kps = [line.split(",") for line in lines[:-1]]
     for kp in kps:
-        xs = [int(float(i)) for i in kp[2::2]]
-        ys = [int(float(i)) for i in kp[3::2]]
+        label = kp[-1]
+        xs = [int(float(i)) for i in kp[2:-1:2]]
+        ys = [int(float(i)) for i in kp[3:-1:2]]
 
         # Show the keypoints
         if SHOW:
@@ -84,11 +86,11 @@ for name in lines[:-1]:
         # Calculate the diagonal lines of the bounding box
         diags = (u.line(v[0], v[3]), u.line(v[1], v[2]))
 
-        # Calculate the center, width, hieght, and angle of the bounding box
-        c = u.intersection(diags[0], diags[1])
-        w = u.length(v[0], v[1]) + EPSILON
-        h = u.length(v[0], v[2]) + EPSILON
-        a = u.angle(v[3], v[2])
+        # Calculate the center, width, height, and angle of the bounding box
+        c = u.intersection(diags[0], diags[1])      # Find the center by looking at the intersection
+        w = u.length(v[0], v[1]) + EPSILON          # Find the width
+        h = u.length(v[0], v[2]) + EPSILON          # Find the height
+        a = u.angle(v[3], v[2])                     # Find the angle
 
         wBucket = u.bucketCount(wBucket, w, 10)
         hBucket = u.bucketCount(hBucket, h, 10)
@@ -98,7 +100,7 @@ for name in lines[:-1]:
             plt.scatter(c[0], c[1])
             plt.annotate(a, (c[0], c[1]))
 
-        line = str(c[0]) + " " + str(c[1]) + " " + str(w) + " " + str(h) + " 1 " + str(a) + "\n"
+        line = str(c[0]) + " " + str(c[1]) + " " + str(w) + " " + str(h) + " " + str(label) + " " + str(a) + "\n"
         rboxLines.append(line)
 
         if PRINT:
@@ -114,6 +116,7 @@ for name in lines[:-1]:
 with open("./train.txt",'w') as target:
     target.writelines(trainLines)
 
+# Print the prior width, height, and angle values to use.
 print(wBucket)
 print(hBucket)
 print(aBucket)

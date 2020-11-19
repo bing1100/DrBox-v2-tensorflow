@@ -24,8 +24,8 @@ overlap = librbox.Overlap
 OVERLAP_THRESHOLD= 0.3
 overlap.argtypes = (POINTER(c_double),POINTER(c_double))
 overlap.restype  =  c_double
-route_test = "./data/test" 
-route_result = "./data/result" 
+route_test = "./plane/test" 
+route_result = "./plane/result" 
 retain_threshold = 0  #Only the detection results with the confidence over this threshold are calculated.
 
 def cal_true_number(route = ''):
@@ -219,6 +219,8 @@ def AUPR(pr_rec, pr_pre):
             break
     return Area_under_pr
 
+# BEP: 0.93083573487
+# AP: 0.938741387551
 
 if __name__ == '__main__':
     cal_pr(route_test, route_result)

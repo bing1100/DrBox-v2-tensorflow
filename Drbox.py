@@ -16,7 +16,7 @@ INPUT_DATA_PATH = TXT_DIR + '/train'
 TEST_DATA_PATH = TXT_DIR + '/test'
 PRETRAINED_NET_PATH = "./vgg16.npy"
 SAVE_PATH = './result' 
-TRAIN_BATCH_SIZE = 16
+TRAIN_BATCH_SIZE = 4
 IM_HEIGHT = 300
 IM_WIDTH = 300
 IM_CDIM = 3
@@ -33,7 +33,7 @@ PRIOR_HEIGHTS =[[20.0, 45.0, 70.0, 110.0],[30.0, 55.0, 90.0, 140.0]] #[3.0,8.0,1
 PRIOR_ANGLES = [5.0, 25.0, 55.0, 85.0, 115.0, 145.0, 175.0]
 
 
-ITERATION_NUM = 20000 
+ITERATION_NUM = 180000 
 OVERLAP_THRESHOLD = 0.5
 IS180 = False
 NP_RATIO = 3
@@ -285,7 +285,6 @@ class DrBoxNet():
             batch_neg_mask = np.zeros(TRAIN_BATCH_SIZE*self.max_neg_num)
             k = 0            
             for batch_idx in batch_list:
-                print(batch_idx)
                 im_rbox_info = self.train_im_list[batch_idx]
                 im_rbox_info = im_rbox_info.split(' ')
                 real_idx = eval(im_rbox_info[0])
@@ -375,7 +374,7 @@ class DrBoxNet():
                     test_im[is_zero[0][temp_idx], is_zero[1][temp_idx]] = mean_value   
             temp = np.zeros((test_im.shape[0], test_im.shape[1], IM_CDIM))
             for chid in range(IM_CDIM):
-                temp[:,:,chid] = test_im
+                temp[:,:,chid] = test_im[:,:,chid]
             test_im = temp
             [height, width, _] = test_im.shape
             print('Start detection'+test_im_path)
